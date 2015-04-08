@@ -1,0 +1,42 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>JavaScript</title>
+</head>
+<body>
+<pre id="environment"></pre>
+
+<script type="text/javascript">
+    
+    function Length(str) {
+        return str.length;
+    }
+
+    function CharExchange(str, src, dst)
+    {
+        var chars = str.split('');
+        var charTemp = chars[src];
+        chars[src] = chars[dst];
+        chars[dst] = charTemp;
+        return chars.join('');
+    }
+
+
+    var element = document.getElementById("environment");
+    var result = "";
+    try {
+        result = (function() {
+            @Html.Raw(ViewBag.Response)
+        })();
+    } catch (e) {
+        result = e;
+    }
+
+    element.textContent = result;
+</script>
+</body>
+</html>

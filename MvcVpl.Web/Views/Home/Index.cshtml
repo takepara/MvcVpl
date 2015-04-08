@@ -1,0 +1,244 @@
+﻿@{
+//    ViewBag.Title = "Index";
+}
+
+<div class="row">
+    <div class="col s12 m3">
+        <h5 class="center">プログラム</h5>
+
+        <div class="row">
+            <button id="select-ast" class="col s3 btn red lighten-1 waves-effect waves-light">SELECT</button>
+            <select id="sample-ast" class="col s9">
+                <option value="new">新規</option>
+                <option value="string">文字列</option>
+                <option value="add">足し算</option>
+                <option value="loop">繰り返し</option>
+                <option value="kuku">九九</option>
+                <option value="sort">ソート</option>
+            </select>
+        </div>
+
+        <div id="viewer" class="row">
+            <div data-bind="template: {name: 'syntaxtree-viewer'}"></div>
+        </div>
+    </div>
+
+    <div class="col s12 m3">
+        <h5 class="center">構文</h5>
+
+        <div id="adder">
+            <div>
+                <button id="add-syntax" class="col s3 btn red lighten-1 waves-effect waves-light">ADD</button>
+                <select class="col s9" data-bind="value: Kind">
+                    <option value="var">変数宣言</option>
+                    <option value="assign">代入</option>
+                    <option value="if">判定</option>
+                    <option value="while">繰り返し</option>
+                    <option value="return">戻り値</option>
+                    <option value="break">中断</option>
+                    <option value="continue">再開</option>
+                </select>
+            </div>
+            <div data-bind="style:{display: showVar() ? '' : 'none'}">
+                <label>型</label>
+                <select name="var-type" data-bind="value: VarType">
+                    <option value="bool">真偽</option>
+                    <option value="int">整数</option>
+                    <option value="string">文字列</option>
+                </select>
+            </div>
+            <div data-bind="style:{display: showName() ? '' : 'none'}">
+                <label>変数名</label>
+                <input type="text" name="var-name" data-bind="value: VarName" />
+            </div>
+            <div data-bind="style:{display: showPrimary() ? '' : 'none'}">
+                <label>式</label>
+                <select name="exp-primary-kind" data-bind="value: ExpPrimaryKind">
+                    <option value="ref">変数</option>
+                    <option value="bool">真偽</option>
+                    <option value="int">整数</option>
+                    <option value="string">文字列</option>
+                </select>
+                <input type="text" name="exp-primary-value" data-bind="value: ExpPrimaryValue" />
+            </div>
+            <div data-bind="style:{display: showOperation() ? '' : 'none'}">
+                <label>オペレーション</label>
+                <select name="exp-operation" data-bind="value: ExpOperation">
+                    <option value=""></option>
+                    <option value="add">+</option>
+                    <option value="sub">-</option>
+                    <option value="mul">*</option>
+                    <option value="div">/</option>
+                    <option value="eq">==</option>
+                    <option value="lt">&lt;</option>
+                    <option value="lte">&lt;=</option>
+                    <option value="gt">&gt;</option>
+                    <option value="gte">&gt;=</option>
+                </select>
+            </div>
+            <div data-bind="style:{display: showSecondary() ? '' : 'none'}">
+                <label>式</label>
+                <select name="exp-secondary-kind" data-bind="value: ExpSecondaryKind">
+                    <option value="ref">変数</option>
+                    <option value="bool">真偽</option>
+                    <option value="int">整数</option>
+                    <option value="string">文字列</option>
+                </select>
+                <input type="text" name="exp-secondary-value" data-bind="value: ExpSecondaryValue" />
+            </div>
+        </div>
+    </div>
+
+    <div class="col s12 m6">
+
+        <div class="row">
+            <div class="col m6">
+                <h5 class="center">JavaScript</h5>
+
+                <p class="light">
+                    <pre id="javascript-preview" class="prettyprint"></pre>
+                </p>
+
+
+            </div>
+
+            <div class="col m6">
+                <h5 class="center">C#</h5>
+
+                <p class="light">
+                    <pre id="csharp-preview" class="prettyprint"></pre>
+                </p>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="center">
+                <button id="run" class="btn red lighten-1 waves-effect waves-light">RUN</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col m6">
+                <p class="light">
+                    <div class="environment">
+                        <iframe src="~/blank.html" id="javascript-environment" name="javascriptEnvironment"></iframe>
+                    </div>
+                </p>
+            </div>
+            <div class="col m6">
+                <p class="light">
+                    <div class="environment">
+                        <iframe src="~/blank.html" id="csharp-environment" name="csharpEnvironment"></iframe>
+                    </div>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: none;">
+        <form action="~/Environment/JavaScript" method="post" target="javascriptEnvironment" id="javascriptForm">
+            <input type="hidden" name="source" id="javascriptSource" value="" />
+        </form>
+        <form action="~/Environment/CSharp" method="post" target="csharpEnvironment" id="csharpForm">
+            <input type="hidden" name="source" id="csharpSource" value="" />
+        </form>
+    </div>
+
+</div>
+
+@section templates
+{
+    <script type="text/html" id="syntaxtree-viewer">
+        <ul class="block">
+            <li>&nbsp;</li>
+            <!-- ko foreach: SyntaxTree-->
+            <li class="syntax">
+                <input type="radio" class="with-gap" name="add-position" data-bind="click: $parent.SelectAddPosition, attr:{id: Id}" />
+                <label data-bind="attr:{for: Id}"></label>
+
+                <!-- ko if: Kind!='if' && Kind!='while'-->
+                <a data-bind="click:$parent.DeleteSyntax"><i class="mdi-action-highlight-remove"></i></a>
+                <!-- /ko -->
+                <span data-bind="template: {name: ViewerTemplateName}"></span>
+            </li>
+            <!-- /ko -->
+            <li>
+                <input type="radio" class="with-gap" name="add-position" data-bind="click: SelectAddPosition, attr:{id: Id}" />
+                <label data-bind="attr:{for: Id}"></label>
+            </li>
+        </ul>
+    </script>
+
+    <script type="text/html" id="default-viewer">
+        <span data-bind="text:Kind"></span>
+    </script>
+
+    <script type="text/html" id="constant-viewer">
+        <span data-bind="text:ViewerValue($data)"></span>
+    </script>
+
+    <script type="text/html" id="operation-viewer">
+        (
+        <span data-bind="template:{ name: ViewerTemplateName, data:Primary }"></span>
+        <span data-bind="text: ViewerOperation($data)"></span>
+        <span data-bind="template:{ name: ViewerTemplateName, data:Secondary }"></span>
+        )
+    </script>
+
+    <script type="text/html" id="ref-viewer">
+        <span data-bind="text:Name"></span>
+    </script>
+
+    <script type="text/html" id="assign-viewer">
+        代入
+        <span data-bind="text:Name"></span>
+        =
+        <span data-bind="template:{ name: ViewerTemplateName, data:Primary }"></span>
+    </script>
+
+    <script type="text/html" id="var-viewer">
+        <!-- ko if: Kind == "var" && $parent.Primary != $data && $parent.Secondary != $data-->
+        変数宣言
+        <span data-bind="text:Type"></span>
+        <!-- /ko -->
+        <span data-bind="text:Name"></span>
+    </script>
+
+    <script type="text/html" id="if-viewer">
+        <a data-bind="click:$parent.DeleteSyntax"><i class="mdi-action-highlight-remove"></i></a>
+        判定
+        <span data-bind="template:{ name: ViewerTemplateName, data:Primary }"></span>
+        <div>
+            <span data-bind="template:{ name: 'syntaxtree-viewer', data:Block }"></span>
+        </div>
+    </script>
+
+    <script type="text/html" id="while-viewer">
+        <a data-bind="click:$parent.DeleteSyntax"><i class="mdi-action-highlight-remove"></i></a>
+        繰り返し
+        <span data-bind="template:{ name: ViewerTemplateName, data:Primary }"></span>
+        <div>
+            <span data-bind="template:{ name: 'syntaxtree-viewer', data:Block }"></span>
+        </div>
+    </script>
+
+    <script type="text/html" id="return-viewer">
+        戻り値
+        <span data-bind="template:{ name: ViewerTemplateName, data:Primary }"></span>
+    </script>
+
+    <script type="text/html" id="break-viewer">
+        中断
+    </script>
+
+    <script type="text/html" id="continue-viewer">
+        再開
+    </script>
+}
+
+@section scripts
+{
+    <script src="~/content/js/default.ast.js"></script>
+    <script src="~/content/js/default.js"></script>
+}
